@@ -1,0 +1,77 @@
+---
+# tasks file for hostname
+
+- name: Configuration du hostname
+  hostname:
+    name: '{{ hostname }}'
+
+# Gestion du /etc/hosts
+- name: Vérification de la présence du fichier hosts
+  stat: 
+    path: /etc/hosts
+  register: hostname_result_hosts
+
+- name: Vérification de la présence du fichier hosts.bak
+  stat: 
+    path: /etc/hosts.bak
+  register: hostname_result_hosts_bak
+
+- name: Sauvegarde du vieux fichier hosts
+  copy: 
+    remote_src: true 
+    src: /etc/hosts
+    dest: /etc/hosts.bak
+  when: 
+    - hostname_result_hosts.stat.exists
+    - hostname_result_hosts_bak.stat.exists == False
+
+- name: Supprime le fichier original
+  file:
+    path: /etc/hosts
+    state: absent
+  when: hostname_result_hosts.stat.exists
+
+- name: Ajout du fichier hosts
+  template:
+    src: ./templates/hosts.j2
+    dest: /etc/hosts
+    owner: root
+    group: root
+    mode: '0644'
+
+# Gestion du /etc/hostname
+- name: Vérification de la présence du fichier hostname
+  stat: 
+    path: /etc/hostname
+  register: hostname_result_hostname_file
+
+- name: Vérification de la présence du fichier hostname.bak
+  stat: 
+    path: /etc/hostname.bak
+  register: hostname_result_hostname_file_bak
+
+- name: Sauvegarde du vieux fichier hostname
+  copy: 
+    remote_src: true 
+    src: /etc/hostname
+    dest: /etc/hostname.bak
+  when: 
+    - hostname_result_hostname_file.stat.exists
+    - hostname_result_hostname_file_bak.stat.exists == False
+
+- name: Supprime le fichier original
+  file:
+    path: /etc/hostname
+    state: absent
+  when: hostname_result_hostname_file.stat.exists
+
+- name: Ajout du fichier hostname
+  template:
+    src: ./templates/hostname.j2
+    dest: /etc/hostname
+    owner: root
+    group: root
+    mode: '0644'
+
+
+...
